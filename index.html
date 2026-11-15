@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>Juego de las Cajas de Inversión</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app" id="app">
+
+    <!-- ============ 1. INICIO / CONSENTIMIENTO ============ -->
+    <section id="pantalla-inicio" class="pantalla activa" aria-labelledby="titulo">
+      <div class="card">
+        <h1 id="titulo" class="titulo">Juego de las Cajas de Inversión</h1>
+        <p class="subtitulo">Actividad de toma de decisiones · Neurociencia y Psicología</p>
+
+        <div class="bloque">
+          <h2>Instrucciones</h2>
+          <ul class="lista">
+            <li>Jugarás <b>15 rondas</b>. En cada una debes elegir entre la <b class="t-azul">Caja Azul</b> y la <b class="t-roja">Caja Roja</b>.</li>
+            <li>Cada caja puede hacerte <b>ganar o perder puntos</b>.</li>
+            <li>Comienzas con <b><span id="txt-puntaje-inicial">50</span> puntos</b>. Tu objetivo es terminar con la mayor cantidad posible.</li>
+            <li>Decide con atención: se registrará cuánto tardas en cada elección.</li>
+            <li>Una vez que eliges una caja, la decisión no se puede cambiar.</li>
+          </ul>
+        </div>
+
+        <div class="bloque bloque-suave">
+          <h2>Consentimiento</h2>
+          <p>Tu participación es <b>voluntaria y anónima</b>: solo se usa un código, nunca tu nombre. Los datos se usarán únicamente con fines educativos en esta clase. Puedes retirarte en cualquier momento sin consecuencias.</p>
+          <p class="aviso">La actividad puede incluir <b>efectos de sonido</b> y <b>cambios de color en la pantalla</b>. Si tienes sensibilidad a luces intermitentes (por ejemplo, epilepsia fotosensible) o al ruido, avisa a tu docente antes de comenzar. Usa un volumen moderado.</p>
+        </div>
+
+        <form id="form-inicio" class="formulario" novalidate>
+          <label for="input-id" class="label">Código anónimo del participante</label>
+          <input id="input-id" type="text" inputmode="text" autocomplete="off" autocapitalize="characters"
+                 spellcheck="false" maxlength="40" placeholder="Ej: 3B-07" required>
+
+          <label class="check">
+            <input id="chk-consentimiento" type="checkbox">
+            <span>He leído la información y acepto participar.</span>
+          </label>
+
+          <!-- Panel oculto para el docente: tocar el título 5 veces o Ctrl+Shift+G -->
+          <div id="panel-admin" class="panel-admin" hidden>
+            <h3>Panel del docente</h3>
+            <label for="sel-grupo" class="label">Asignación de grupo</label>
+            <select id="sel-grupo">
+              <option value="aleatorio">Aleatoria (50/50)</option>
+              <option value="control">Forzar: Grupo Control</option>
+              <option value="experimental">Forzar: Grupo Experimental</option>
+            </select>
+            <p class="nota">También puedes usar la URL <code>?grupo=control</code> o <code>?grupo=experimental</code>.</p>
+            <p class="nota">Sesiones guardadas en este dispositivo: <b id="txt-guardadas">0</b></p>
+            <div class="fila-botones">
+              <button type="button" id="btn-descargar-todo" class="btn btn-secundario btn-chico">Descargar todas (CSV)</button>
+              <button type="button" id="btn-borrar-todo" class="btn btn-peligro btn-chico">Borrar guardadas</button>
+            </div>
+          </div>
+
+          <button id="btn-comenzar" type="submit" class="btn btn-primario" disabled>Comenzar</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ 2 y 4. JUEGO (FASE 1 Y FASE 2) ============ -->
+    <section id="pantalla-juego" class="pantalla" aria-live="polite">
+      <header class="hud">
+        <div class="hud-item">
+          <span class="hud-etiqueta">Ronda</span>
+          <span class="hud-valor"><span id="hud-ronda">1</span><small>/15</small></span>
+        </div>
+        <div id="hud-fase" class="chip">Fase 1</div>
+        <div class="hud-item hud-derecha">
+          <span class="hud-etiqueta">Puntaje</span>
+          <span id="hud-puntaje" class="hud-valor">50</span>
+        </div>
+      </header>
+      <div class="progreso" aria-hidden="true"><div id="barra-progreso" class="progreso-barra"></div></div>
+
+      <p id="estado" class="estado">Preparando…</p>
+
+      <div class="cajas">
+        <button id="caja-azul" class="caja caja-azul" data-caja="Azul" type="button" disabled>
+          <svg class="caja-icono" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M32 6 56 18v28L32 58 8 46V18z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M8 18l24 12 24-12M32 30v28" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+          </svg>
+          <span class="caja-nombre">Caja Azul</span>
+        </button>
+        <button id="caja-roja" class="caja caja-roja" data-caja="Roja" type="button" disabled>
+          <svg class="caja-icono" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M32 6 56 18v28L32 58 8 46V18z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M8 18l24 12 24-12M32 30v28" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+          </svg>
+          <span class="caja-nombre">Caja Roja</span>
+        </button>
+      </div>
+
+      <div id="reglas-f2" class="reglas-mini" hidden>
+        <span><b class="t-azul">Azul:</b> 70% → +10 · 30% → −5</span>
+        <span><b class="t-roja">Roja:</b> 90% → +4 · 10% → −1</span>
+      </div>
+
+      <div id="resultado" class="resultado oculto" role="status">
+        <p id="resultado-texto" class="resultado-texto"></p>
+        <p id="resultado-puntos" class="resultado-puntos"></p>
+        <button id="btn-siguiente" type="button" class="btn btn-primario" disabled>Siguiente ronda</button>
+      </div>
+    </section>
+
+    <!-- ============ 3. TRANSICIÓN ============ -->
+    <section id="pantalla-transicion" class="pantalla" aria-labelledby="titulo-transicion">
+      <div class="card">
+        <div class="icono-reinicio" aria-hidden="true">⟳</div>
+        <h1 id="titulo-transicion" class="titulo">El sistema se ha reiniciado</h1>
+        <p class="destacado">El juego se <b>reinició por completo</b> y <b>las probabilidades cambiaron</b>. Lo que ocurrió en las rondas anteriores <b>ya no tiene ninguna relación</b> con lo que viene.</p>
+        <p>Desde la <b>Ronda 4 hasta la Ronda 15</b> (12 rondas) las cajas funcionarán <b>exactamente</b> con estas reglas:</p>
+
+        <div class="tabla-reglas">
+          <div class="regla regla-azul">
+            <h3>Caja Azul</h3>
+            <p><span class="pct">70%</span> de probabilidad de <b class="pos">ganar 10 puntos</b></p>
+            <p><span class="pct">30%</span> de probabilidad de <b class="neg">perder 5 puntos</b></p>
+          </div>
+          <div class="regla regla-roja">
+            <h3>Caja Roja</h3>
+            <p><span class="pct">90%</span> de probabilidad de <b class="pos">ganar 4 puntos</b></p>
+            <p><span class="pct">10%</span> de probabilidad de <b class="neg">perder 1 punto</b></p>
+          </div>
+        </div>
+
+        <p class="nota centro">Tu puntaje actual se mantiene. Estas reglas se mostrarán abajo de las cajas durante el resto del juego.</p>
+
+        <label class="check">
+          <input id="chk-leido" type="checkbox" disabled>
+          <span>Leí y entendí las nuevas reglas.</span>
+        </label>
+        <button id="btn-fase2" type="button" class="btn btn-primario" disabled>
+          Lee con atención… <span id="txt-cuenta">10</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ 5. FINAL / DEBRIEFING ============ -->
+    <section id="pantalla-final" class="pantalla" aria-labelledby="titulo-final">
+      <div class="card">
+        <h1 id="titulo-final" class="titulo">¡Gracias por participar!</h1>
+
+        <div class="metricas">
+          <div class="metrica">
+            <span class="metrica-valor" id="m-puntaje">0</span>
+            <span class="metrica-etiqueta">Puntaje total</span>
+          </div>
+          <div class="metrica">
+            <span class="metrica-valor" id="m-azul">0%</span>
+            <span class="metrica-etiqueta">Elección Caja Azul (Fase 2)</span>
+          </div>
+          <div class="metrica">
+            <span class="metrica-valor" id="m-tr">0 s</span>
+            <span class="metrica-etiqueta">Tiempo de reacción promedio (Fase 2)</span>
+          </div>
+        </div>
+        <p class="nota centro">Participante: <b id="m-id"></b> · Grupo: <b id="m-grupo"></b></p>
+        <p id="estado-envio" class="estado-envio" role="status" aria-live="polite"></p>
+        <button id="btn-reintentar" type="button" class="btn btn-secundario btn-chico btn-reintentar" hidden>Reintentar envío</button>
+
+        <div class="bloque">
+          <h2>¿De qué trataba realmente este estudio?</h2>
+          <div id="debriefing"></div>
+        </div>
+
+        <div class="fila-botones">
+          <button id="btn-csv" type="button" class="btn btn-primario">Descargar resultados (CSV)</button>
+          <button id="btn-nuevo" type="button" class="btn btn-secundario">Nuevo participante</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Destello rojo suave al perder puntos -->
+  <div id="flash-perdida" class="flash-perdida" aria-hidden="true"></div>
+
+  <!-- Estímulo aversivo -->
+  <div id="alerta" class="alerta oculto" role="alert" aria-hidden="true">
+    <div class="alerta-contenido">
+      <div class="alerta-icono">⚠</div>
+      <p class="alerta-titulo">ERROR CRÍTICO</p>
+      <p class="alerta-sub">PÉRDIDA MASIVA</p>
+      <p class="alerta-puntos" id="alerta-puntos">−30 PUNTOS</p>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
