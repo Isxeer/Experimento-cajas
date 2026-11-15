@@ -514,21 +514,34 @@
     txt.className = 'estado-envio';
     txt.textContent = 'Guardando resultados en el servidor...';
 
+    if (!navigator.onLine) {
+      txt.className = 'estado-envio error';
+      txt.textContent = '⚠️ Sin conexión a internet. Conéctate y reintenta, o descarga el CSV como respaldo.';
+      btnReintentar.hidden = false;
+      return;
+    }
+
     try {
-      await fetch(CONFIG.urlServidor, {
+      // Petición "simple" (text/plain, sin preflight) en modo CORS para poder leer la respuesta.
+      const resp = await fetch(CONFIG.urlServidor, {
         method: 'POST',
-        mode: 'no-cors',
         keepalive: true,
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ filaResumen: construirFilaResumen(res) }),
       });
-      // Con 'no-cors' la respuesta es opaca: solo sabemos que la petición se envió sin error de red.
-      txt.className = 'estado-envio ok';
-      txt.textContent = '✅ Resultados registrados correctamente';
+      if (resp.ok) {
+        txt.className = 'estado-envio ok';
+        txt.textContent = '✅ Resultados registrados correctamente';
+      } else {
+        txt.className = 'estado-envio error';
+        txt.textContent = '⚠️ El servidor respondió con un error (' + resp.status + '). Reintenta o descarga el CSV como respaldo.';
+        btnReintentar.hidden = false;
+      }
     } catch (_) {
-      txt.className = 'estado-envio error';
-      txt.textContent = '⚠️ No se pudo conectar con el servidor. Reintenta o descarga el CSV como respaldo.';
-      btnReintentar.hidden = false;
+      // Con conexión, un fallo aquí suele ser que el servidor procesó el envío pero no permitió
+      // leer la respuesta (CORS). No se ofrece reintentar para no duplicar la fila en la planilla.
+      txt.className = 'estado-envio';
+      txt.textContent = 'Resultados enviados, pero no se pudo confirmar su registro. Descarga el CSV como respaldo.';
     }
   }
 
@@ -587,7 +600,7 @@
       s.id, s.grupo, 'RESUMEN', '', '',
       num(res.puntajeFinal - CONFIG.puntajeInicial), // puntos netos obtenidos en el juego
       num(res.puntajeFinal),                          // puntaje total final
-      num(res.trPromF2, 3),                           // TR promedio Fase 2
+      '',                                             // TR por ronda: no aplica en el resumen
       '', num(res.pctAzulF2, 2), num(res.trPromF2, 3), s.fecha,
     ]);
     return filas;
