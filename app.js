@@ -576,8 +576,14 @@
   // =========================================================
   const COLUMNAS = [
     'ID', 'Grupo', 'Ronda', 'Fase', 'Caja Elegida', 'Puntos Obtenidos', 'Puntaje Acumulado',
-    'Tiempo de Reaccion (s)', 'Eleccion Forzada', 'Pct Azul Fase 2', 'TR Promedio Fase 2 (s)', 'Fecha',
+    'Tiempo de Reaccion (s)', 'Eleccion Forzada', 'Pct Azul Fase 2', 'TR Promedio Fase 2 (s)',
+    'Puntos Fase 2', 'Fecha',
   ];
+
+  // Puntos ganados solo en la Fase 2 (rondas 4-15). Excluye la Fase 1 para que la pérdida
+  // programada del Grupo Experimental no sesgue la comparación entre grupos.
+  const puntosFase2 = (registros) =>
+    registros.filter((x) => x.fase === 2).reduce((a, x) => a + x.puntos, 0);
 
   function num(n, dec) {
     if (n === '' || n === null || n === undefined) return '';
@@ -594,14 +600,15 @@
     const res = s.resumen || calcularResumen(s.registros);
     const filas = s.registros.map((x) => [
       s.id, s.grupo, x.ronda, x.fase, x.caja, num(x.puntos), num(x.acumulado),
-      num(x.tr, 3), x.forzada ? 'Si' : 'No', '', '', s.fecha,
+      num(x.tr, 3), x.forzada ? 'Si' : 'No', '', '', '', s.fecha,
     ]);
     filas.push([
       s.id, s.grupo, 'RESUMEN', '', '',
       num(res.puntajeFinal - CONFIG.puntajeInicial), // puntos netos obtenidos en el juego
       num(res.puntajeFinal),                          // puntaje total final
       '',                                             // TR por ronda: no aplica en el resumen
-      '', num(res.pctAzulF2, 2), num(res.trPromF2, 3), s.fecha,
+      '', num(res.pctAzulF2, 2), num(res.trPromF2, 3),
+      num(puntosFase2(s.registros)), s.fecha,
     ]);
     return filas;
   }
