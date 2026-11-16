@@ -117,10 +117,14 @@
 
   function resolverGrupo() {
     const sel = $('sel-grupo').value;
-    const url = (new URLSearchParams(location.search).get('grupo') || '').toLowerCase();
+    // Código discreto en la URL: ?v=0C o ?v=1C → Control; ?v=0E o ?v=1E → Experimental.
+    // El número es solo de relleno; la letra define el grupo.
+    const codigo = (new URLSearchParams(location.search).get('v') || '').trim().toUpperCase();
+    const m = /^[01]([CE])$/.exec(codigo);
+    const url = m ? (m[1] === 'C' ? 'control' : 'experimental') : '';
     let g;
     if (sel === 'control' || sel === 'experimental') g = sel;
-    else if (url === 'control' || url === 'experimental') g = url;
+    else if (url) g = url;
     else g = aleatorio() < 0.5 ? 'control' : 'experimental';
     return g === 'control' ? 'Control' : 'Experimental';
   }

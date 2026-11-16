@@ -3,7 +3,7 @@
 Experimento de clase (Neurociencia y Psicología) sobre **aversión a la pérdida** y **condicionamiento aversivo**. Web estática sin dependencias: `index.html`, `styles.css`, `app.js`. Se abre directo en el navegador (celular o PC).
 
 ## Diseño experimental
-- 15 rondas, puntaje inicial 50. Asignación aleatoria 50/50 a **Control** o **Experimental** (forzable con el panel oculto del docente —5 toques en el título o Ctrl+Shift+G— o con `?grupo=control|experimental`).
+- 15 rondas, puntaje inicial 50. Asignación aleatoria 50/50 a **Control** o **Experimental** (forzable con el panel oculto del docente —5 toques en el título o Ctrl+Shift+G— o con un código discreto en la URL: `?v=0C` / `?v=1C` → Control, `?v=0E` / `?v=1E` → Experimental; el número es solo de relleno). El antiguo `?grupo=` ya no funciona, a propósito.
 - **Fase 1 (rondas 1–3):** ganancias normales (+3 a +6). En el grupo Experimental, la Caja Azul da +15 en la ronda 1 y **−30 con estímulo aversivo** (alarma roja, buzzer, vibración) en la ronda 2. La ronda 2 obliga a elegir Azul en **ambos** grupos, para que la única diferencia sea el resultado.
 - **Transición:** pantalla de "sistema reiniciado" con las nuevas reglas y 10 s de lectura mínima.
 - **Fase 2 (rondas 4–15), reglas informadas:** Azul 70% +10 / 30% −5 (VE 5,5); Roja 90% +4 / 10% −1 (VE 3,5).
