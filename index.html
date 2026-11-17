@@ -22,7 +22,7 @@
         <div class="bloque">
           <h2>Instrucciones</h2>
           <ul class="lista">
-            <li>Jugarás <b>15 rondas</b>. En cada una debes elegir entre la <b class="t-azul">Caja Azul</b> y la <b class="t-roja">Caja Roja</b>.</li>
+            <li>Jugarás <b><span id="txt-total-rondas">15</span> rondas</b>. En cada una debes elegir entre la <b class="t-azul">Caja Azul</b> y la <b class="t-roja">Caja Roja</b>.</li>
             <li>Cada caja puede hacerte <b>ganar o perder puntos</b>.</li>
             <li>Comienzas con <b><span id="txt-puntaje-inicial">50</span> puntos</b>. Tu objetivo es terminar con la mayor cantidad posible.</li>
             <li>Decide con atención: se registrará cuánto tardas en cada elección.</li>
@@ -73,7 +73,7 @@
       <header class="hud">
         <div class="hud-item">
           <span class="hud-etiqueta">Ronda</span>
-          <span class="hud-valor"><span id="hud-ronda">1</span><small>/15</small></span>
+          <span class="hud-valor"><span id="hud-ronda">1</span><small>/<span id="hud-total">15</span></small></span>
         </div>
         <div id="hud-fase" class="chip">Fase 1</div>
         <div class="hud-item hud-derecha">
@@ -112,6 +112,12 @@
         <p id="resultado-puntos" class="resultado-puntos"></p>
         <button id="btn-siguiente" type="button" class="btn btn-primario" disabled>Siguiente ronda</button>
       </div>
+
+      <!-- Historial de rondas jugadas: una celda por ronda (ronda, caja elegida y puntos) -->
+      <div id="historial" class="historial" hidden>
+        <h2 class="historial-titulo">Tus rondas anteriores</h2>
+        <div id="historial-celdas" class="historial-celdas" role="list"></div>
+      </div>
     </section>
 
     <!-- ============ 3. TRANSICIÓN ============ -->
@@ -120,7 +126,7 @@
         <div class="icono-reinicio" aria-hidden="true">⟳</div>
         <h1 id="titulo-transicion" class="titulo">El sistema se ha reiniciado</h1>
         <p class="destacado">El juego se <b>reinició por completo</b> y <b>las probabilidades cambiaron</b>. Lo que ocurrió en las rondas anteriores <b>ya no tiene ninguna relación</b> con lo que viene.</p>
-        <p>Desde la <b>Ronda 4 hasta la Ronda 15</b> (12 rondas) las cajas funcionarán <b>exactamente</b> con estas reglas:</p>
+        <p>Desde la <b>Ronda <span id="txt-f2-inicio">9</span> hasta la Ronda <span id="txt-f2-fin">15</span></b> (<span id="txt-f2-cantidad">7</span> rondas) las cajas funcionarán <b>exactamente</b> con estas reglas:</p>
 
         <div class="tabla-reglas">
           <div class="regla regla-azul">

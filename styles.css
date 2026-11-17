@@ -13,6 +13,12 @@
   --roja: #dc2626;
   --pos: #15803d;
   --neg: #dc2626;
+  /* Historial: pérdidas de suave a intenso, ganancias apagadas */
+  --p-neg3: #d60000;
+  --p-neg2: #d45454;
+  --p-neg1: #c76b6b;
+  --p-pos1: #569f6e;
+  --p-pos2: #389457;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -28,6 +34,11 @@
     --bloque: #161616;
     --pos: #4ade80;
     --neg: #f87171;
+    --p-neg3: #ff2d2d;
+    --p-neg2: #e06c6c;
+    --p-neg1: #b98282;
+    --p-pos1: #6aa37e;
+    --p-pos2: #58bb7d;
   }
 }
 
@@ -314,6 +325,57 @@ input[type="text"]:focus, select:focus { border-color: var(--borde); }
   letter-spacing: -.02em;
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- Historial de rondas ---- */
+.historial { margin-top: 20px; }
+.historial[hidden] { display: none; }
+.historial-titulo { color: var(--suave); margin: 0 0 8px; }
+.historial-celdas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  gap: 6px;
+}
+.h-celda {
+  background: var(--card);
+  border: 1px solid var(--borde-suave);
+  padding: 6px 4px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  animation: aparecer .25s ease;
+}
+.h-ronda {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--suave);
+}
+.h-caja {
+  width: 100%;
+  text-align: center;
+  font-size: .6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #fff;
+  padding: 2px 0;
+}
+.h-azul { background: var(--azul); }
+.h-roja { background: var(--roja); }
+.h-puntos {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+/* Escala del puntaje: rojo más intenso mientras mayor es la pérdida; verde siempre más apagado */
+.p-neg3 { color: var(--p-neg3); font-weight: 900; font-size: 1.15rem; }
+.p-neg2 { color: var(--p-neg2); font-weight: 800; }
+.p-neg1 { color: var(--p-neg1); font-weight: 700; }
+.p-pos1 { color: var(--p-pos1); font-weight: 600; }
+.p-pos2 { color: var(--p-pos2); font-weight: 700; }
+.p-cero { color: var(--suave); }
 
 /* ---- Destello suave al perder puntos ---- */
 .flash-perdida {

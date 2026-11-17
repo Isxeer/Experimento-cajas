@@ -8,7 +8,7 @@
   const CONFIG = {
     puntajeInicial: 50,
     totalRondas: 15,
-    rondasFase1: 3,
+    rondasFase1: 8,           // Fase 1 = rondas 1-8; Fase 2 = rondas 9-15
 
     // Fase 1: ganancias "normales" (ambos grupos)
     gananciaNormalMin: 3,
@@ -16,12 +16,13 @@
 
     // Fase 1: Grupo Experimental
     expRonda1Azul: 15,        // Ronda 1: Caja Azul da ganancia alta
-    expRonda2Perdida: -30,    // Ronda 2: Caja Azul da pérdida masiva + estímulo aversivo
-    // Ronda 2 con elección forzada a Caja Azul. Se aplica a AMBOS grupos para que
+    rondaTrampa: 7,           // Ronda de la pérdida masiva (debe estar dentro de la Fase 1)
+    expPerdidaTrampa: -30,    // Ronda trampa: Caja Azul da pérdida masiva + estímulo aversivo
+    // Ronda trampa con elección forzada a Caja Azul. Se aplica a AMBOS grupos para que
     // la única diferencia entre ellos sea el resultado (pérdida + estímulo).
-    forzarAzulRonda2: true,
+    forzarAzulRondaTrampa: true,
 
-    // Fase 2 (rondas 4-15): reglas informadas
+    // Fase 2 (rondas 9-15): reglas informadas
     azulProbGanar: 0.7,
     azulGanancia: 10,
     azulPerdida: -5,
@@ -55,7 +56,7 @@
   }
   const entero = (min, max) => min + Math.floor(aleatorio() * (max - min + 1));
   const fase = (r) => (r <= CONFIG.rondasFase1 ? 1 : 2);
-  const esForzada = (r) => CONFIG.forzarAzulRonda2 && r === 2;
+  const esForzada = (r) => CONFIG.forzarAzulRondaTrampa && r === CONFIG.rondaTrampa;
   const conSigno = (n) => (n > 0 ? '+' + n : n < 0 ? '−' + Math.abs(n) : '0');
   const promedio = (arr) => (arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
 
@@ -88,6 +89,12 @@
   // 1. INICIO
   // =========================================================
   $('txt-puntaje-inicial').textContent = CONFIG.puntajeInicial;
+  // Los números de rondas que aparecen en los textos salen de CONFIG, para que nunca se desalineen
+  $('txt-total-rondas').textContent = CONFIG.totalRondas;
+  $('hud-total').textContent = CONFIG.totalRondas;
+  $('txt-f2-inicio').textContent = CONFIG.rondasFase1 + 1;
+  $('txt-f2-fin').textContent = CONFIG.totalRondas;
+  $('txt-f2-cantidad').textContent = CONFIG.totalRondas - CONFIG.rondasFase1;
 
   function validarInicio() {
     $('btn-comenzar').disabled = !($('input-id').value.trim() && $('chk-consentimiento').checked);
@@ -145,6 +152,7 @@
     estado.ronda = 1;
     estado.enCurso = true;
     estado.resumen = null;
+    limpiarHistorial();
 
     mostrarPantalla('pantalla-juego');
     iniciarRonda();
@@ -293,7 +301,7 @@
     if (fase(r) === 1) {
       if (estado.grupo === 'Experimental') {
         if (r === 1 && caja === 'Azul') return { puntos: CONFIG.expRonda1Azul, aversivo: false };
-        if (r === 2 && caja === 'Azul') return { puntos: CONFIG.expRonda2Perdida, aversivo: true };
+        if (r === CONFIG.rondaTrampa && caja === 'Azul') return { puntos: CONFIG.expPerdidaTrampa, aversivo: true };
       }
       return { puntos: entero(CONFIG.gananciaNormalMin, CONFIG.gananciaNormalMax), aversivo: false };
     }
@@ -369,10 +377,55 @@
   }
   flashPerdida.addEventListener('animationend', () => flashPerdida.classList.remove('activa'));
 
+  // ---------- Historial de rondas (visible en ambos grupos y en ambas fases) ----------
+  const historial = $('historial');
+  const historialCeldas = $('historial-celdas');
+
+  // Escala de color del puntaje: las pérdidas en rojo cada vez más intenso según su tamaño;
+  // las ganancias en verde, siempre más apagado que el rojo.
+  function clasePuntos(p) {
+    if (p <= -20) return 'p-neg3';
+    if (p <= -5) return 'p-neg2';
+    if (p < 0) return 'p-neg1';
+    if (p >= 10) return 'p-pos2';
+    if (p > 0) return 'p-pos1';
+    return 'p-cero';
+  }
+
+  function limpiarHistorial() {
+    historialCeldas.textContent = '';
+    historial.hidden = true;
+  }
+
+  function agregarAlHistorial(reg) {
+    const celda = document.createElement('div');
+    celda.className = 'h-celda';
+    celda.setAttribute('role', 'listitem');
+    celda.setAttribute('aria-label',
+      'Ronda ' + reg.ronda + ': Caja ' + reg.caja + ', ' + conSigno(reg.puntos) + ' puntos');
+
+    const ronda = document.createElement('span');
+    ronda.className = 'h-ronda';
+    ronda.textContent = 'R' + reg.ronda;
+
+    const caja = document.createElement('span');
+    caja.className = 'h-caja ' + (reg.caja === 'Azul' ? 'h-azul' : 'h-roja');
+    caja.textContent = reg.caja;
+
+    const puntos = document.createElement('span');
+    puntos.className = 'h-puntos ' + clasePuntos(reg.puntos);
+    puntos.textContent = conSigno(reg.puntos);
+
+    celda.append(ronda, caja, puntos);
+    historialCeldas.appendChild(celda);
+    historial.hidden = false;
+  }
+
   function mostrarResultado(caja, puntos) {
     const r = estado.ronda;
     $('hud-puntaje').textContent = estado.puntaje;
     $('estado').textContent = '';
+    agregarAlHistorial(estado.registros[estado.registros.length - 1]);
 
     $('resultado-texto').textContent = 'Elegiste la ' + (caja === 'Azul' ? 'Caja Azul' : 'Caja Roja');
     const elPuntos = $('resultado-puntos');
@@ -472,14 +525,14 @@
     <b>amígdala</b> (asociada al miedo) y la <b>corteza prefrontal</b> (asociada al razonamiento y la planificación).</p>`;
 
   const DEBRIEF_EXPERIMENTAL = `
-    <p>Tú formaste parte del <b>Grupo Experimental</b>. <b>La pérdida de −30 puntos en la Ronda 2 fue programada
+    <p>Tú formaste parte del <b>Grupo Experimental</b>. <b>La pérdida de ${conSigno(CONFIG.expPerdidaTrampa)} puntos en la Ronda ${CONFIG.rondaTrampa} fue programada
     intencionalmente</b>, al igual que la alarma, el sonido y el parpadeo rojo. No fue un error tuyo ni del sistema:
     ocurría siempre, sin importar lo que hicieras. Lo usamos para crear un "recuerdo negativo" asociado a la Caja Azul
     y comparar tus decisiones posteriores con las del Grupo Control, que no vivió ese evento.</p>`;
 
   const DEBRIEF_CONTROL = `
     <p>Tú formaste parte del <b>Grupo Control</b>: en tus primeras rondas ambas cajas daban ganancias normales.
-    Otras personas (Grupo Experimental) vivieron en la Ronda 2 una <b>pérdida de −30 puntos programada
+    Otras personas (Grupo Experimental) vivieron en la Ronda ${CONFIG.rondaTrampa} una <b>pérdida de ${conSigno(CONFIG.expPerdidaTrampa)} puntos programada
     intencionalmente</b>, acompañada de una alarma y un parpadeo rojo. Comparar ambos grupos nos permite ver
     si ese evento cambia la forma de decidir cuando las reglas ya son otras.</p>`;
 
@@ -493,12 +546,12 @@
     const elecciones = estado.registros
       .slice()
       .sort((a, b) => a.ronda - b.ronda)
-      .map((x) => x.caja); // 15 elecciones, ronda 1 a 15
+      .map((x) => x.caja); // una elección por ronda, en orden (15 en total)
     const tiemposF2 = estado.registros
       .filter((x) => x.fase === 2)
       .sort((a, b) => a.ronda - b.ronda)
       .map((x) => x.tr.toFixed(3))
-      .join(' | '); // 12 tiempos de la Fase 2
+      .join(' | '); // un tiempo por cada ronda de la Fase 2 (rondas 9-15: 7 tiempos)
     return [
       estado.fecha,
       estado.id,
@@ -584,7 +637,7 @@
     'Puntos Fase 2', 'Fecha',
   ];
 
-  // Puntos ganados solo en la Fase 2 (rondas 4-15). Excluye la Fase 1 para que la pérdida
+  // Puntos ganados solo en la Fase 2 (rondas 9-15). Excluye la Fase 1 para que la pérdida
   // programada del Grupo Experimental no sesgue la comparación entre grupos.
   const puntosFase2 = (registros) =>
     registros.filter((x) => x.fase === 2).reduce((a, x) => a + x.puntos, 0);
