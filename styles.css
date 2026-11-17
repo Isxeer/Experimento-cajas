@@ -299,6 +299,8 @@ input[type="text"]:focus, select:focus { border-color: var(--borde); }
   font-size: .85rem;
   color: var(--suave);
 }
+/* Sin esto, el display:flex de arriba anula el atributo hidden y las reglas se ven en la Fase 1 */
+.reglas-mini[hidden] { display: none; }
 
 /* ---- Resultado ---- */
 .resultado {

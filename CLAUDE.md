@@ -46,6 +46,6 @@ No implementar sin aprobación. Las cuatro recomendadas:
 Otras: amenaza de quiebra en 0 puntos, sonido propio de la Caja Azul, suspenso de ~1 s antes del resultado, registrar tipo de dispositivo, análisis por bloques dentro de la Fase 2, TR solo en elecciones de Azul.
 
 ## Pendiente
-- **Error detectado, sin corregir (falta aprobación del usuario):** las reglas de la Fase 2 ("Azul: 70% → +10…") se ven bajo las cajas también durante la Fase 1. Causa: `.reglas-mini { display: flex }` en `styles.css` anula el atributo `hidden`. Arreglo propuesto: agregar `.reglas-mini[hidden] { display: none; }`.
+- Corregido el 2026-11-16: las reglas de la Fase 2 ("Azul: 70% → +10…") se veían bajo las cajas también durante la Fase 1, porque `.reglas-mini { display: flex }` anulaba el atributo `hidden`. Ojo al usar `hidden` en elementos con `display` propio: hay que agregar la regla `[hidden] { display: none }` correspondiente. Las partidas jugadas antes de esa fecha tuvieron ese error.
 - La propuesta y el consentimiento del grupo todavía mencionan la ronda 2 y las rondas 4–15 (los actualiza el grupo).
 - Verificado el 2026-11-15: el envío en modo CORS funciona con el Apps Script real (aparece ✅ y la fila llega bien a la planilla).
